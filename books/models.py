@@ -16,7 +16,7 @@ class Book(models.Model):
         null=True,
         blank=True,
     )
-    inventory = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    inventory = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     daily_fee = models.DecimalField(max_digits=6, decimal_places=2)
 
     def __str__(self):
