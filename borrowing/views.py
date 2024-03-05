@@ -1,19 +1,22 @@
 from django.db import transaction
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import (
-    IsAuthenticated, IsAdminUser,
+    IsAuthenticated,
+    IsAdminUser,
 )
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from books.models import Book
-from books.serializers import BookSerializer
 from borrowing.models import Borrow
 from borrowing.permissions import IsOwnerOrReadOnly
 from borrowing.serializers import (
     BorrowBookSerializer,
-    BorrowCreateSerializer, ReturnBookSerializer,
+    BorrowCreateSerializer,
+    ReturnBookSerializer,
 )
 
 
@@ -63,16 +66,21 @@ class BorrowBookViewSet(
                 borrow = Borrow.objects.create(**serializer.validated_data)
                 book.inventory -= 1
                 book.save()
-                return Response(BorrowBookSerializer(borrow).data, status=status.HTTP_201_CREATED)
+                return Response(
+                    BorrowBookSerializer(borrow).data, status=status.HTTP_201_CREATED
+                )
             else:
-                return Response({"detail": "This book is out of stock."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"detail": "This book is out of stock."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
     @action(
         methods=["POST"],
         url_path="return",
         detail=True,
         serializer_class=ReturnBookSerializer,
-        permission_classes=[IsOwnerOrReadOnly]
+        permission_classes=[IsOwnerOrReadOnly],
     )
     def return_book(self, request, pk=None):
         """Endpoint for returning book"""
@@ -84,7 +92,7 @@ class BorrowBookViewSet(
             if borrow.actual_return_date:
                 return Response(
                     {"detail": "You have already returned this book."},
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             borrow.actual_return_date = serializer.validated_data["actual_return_date"]
             borrow.save()
@@ -93,6 +101,22 @@ class BorrowBookViewSet(
             book.save()
 
         return Response(
-            {"detail": "You have returned the book."},
-            status=status.HTTP_204_NO_CONTENT
+            {"detail": "You have returned the book."}, status=status.HTTP_204_NO_CONTENT
         )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "is_active",
+                type=OpenApiTypes.BOOL,
+                description="Filter by active borrowings (ex. ?active=True)",
+            ),
+            OpenApiParameter(
+                "user_id",
+                type=OpenApiTypes.INT,
+                description=("Filter by user_id (only for admin)" "(ex. ?user_id=2)"),
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
