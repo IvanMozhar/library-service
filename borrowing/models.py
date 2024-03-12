@@ -22,3 +22,6 @@ class Borrow(models.Model):
             return self.book_id.daily_fee * 1.7
         else:
             return self.book_id.daily_fee
+      
+    def __str__(self):
+        return f"Borrow by {self.user_id.email} at {self.borrow_date}"

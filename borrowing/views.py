@@ -1,4 +1,3 @@
-import requests
 from django.db import transaction
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -12,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from books.models import Book
+from borrowing.commands import notify
 from borrowing.models import Borrow
 from borrowing.permissions import IsOwnerOrReadOnly
 from borrowing.serializers import (
@@ -19,26 +19,6 @@ from borrowing.serializers import (
     BorrowCreateSerializer,
     ReturnBookSerializer,
 )
-from library_service import settings
-
-token = settings.TELEGRAM_BOT_TOKEN
-chat_id = settings.TELEGRAM_CHAT_ID
-
-
-def notify(borrow, bot_token=token, chat=chat_id):
-    message = (
-        f"A new borrow record has been created:\n"
-        f"User: {borrow.user_id.email}\n"
-        f"Book: {borrow.book_id.__str__()}\n"
-        f"Borrow Date: {borrow.borrow_date}\n"
-        f"Expected Return Date: {borrow.expected_return_date}"
-    )
-
-    send_text = (
-        f"https://api.telegram.org/bot{bot_token}/"
-        f"sendMessage?chat_id={chat}&parse_mode=Markdown&text={message}"
-    )
-    requests.post(send_text)
 
 
 class BorrowBookViewSet(
@@ -91,7 +71,14 @@ class BorrowBookViewSet(
                 book.save()
                 # Send notification to telegram bot if borrow was created
                 if created:
-                    notify(borrow=borrow)
+                    message = (
+                        f"A new borrow record has been created:\n"
+                        f"User: {borrow.user_id.email}\n"
+                        f"Book: {borrow.book_id.__str__()}\n"
+                        f"Borrow Date: {borrow.borrow_date}\n"
+                        f"Expected Return Date: {borrow.expected_return_date}"
+                    )
+                    notify(message=message)
                 return Response(
                     BorrowBookSerializer(borrow).data, status=status.HTTP_201_CREATED
                 )
