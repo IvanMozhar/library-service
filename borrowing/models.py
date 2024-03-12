@@ -15,13 +15,13 @@ class Borrow(models.Model):
     def calculate_amount(self):
         dif = self.expected_return_date - self.borrow_date
         if 20 > dif.days >= 10:
-            return self.book_id.daily_fee * 1.3
+            return int(self.book_id.daily_fee) * 1.3
         elif 30 > dif.days >= 20:
-            return self.book_id.daily_fee * 1.4
+            return int(self.book_id.daily_fee) * 1.4
         elif dif.days >= 30:
-            return self.book_id.daily_fee * 1.7
+            return int(self.book_id.daily_fee) * 1.7
         else:
-            return self.book_id.daily_fee
+            return int(self.book_id.daily_fee)
       
     def __str__(self):
         return f"Borrow by {self.user_id.email} at {self.borrow_date}"
