@@ -19,6 +19,8 @@ from borrowing.serializers import (
     BorrowCreateSerializer,
     ReturnBookSerializer,
 )
+from payment_session.models import Payment
+from payment_session.views import create_checkout_session
 
 
 class BorrowBookViewSet(
@@ -69,8 +71,17 @@ class BorrowBookViewSet(
                 )
                 book.inventory -= 1
                 book.save()
-                # Send notification to telegram bot if borrow was created
+                checkout_session = create_checkout_session(request, borrow)
                 if created:
+                    Payment.objects.get_or_create(
+                        status="PENDING",
+                        type="PAYMENT",
+                        session_url=checkout_session.url,
+                        session_id=checkout_session.id,
+                        borrowing=borrow,
+                        money_to_pay=borrow.calculate_amount,
+                        user=request.user
+                    )
                     message = (
                         f"A new borrow record has been created:\n"
                         f"User: {borrow.user_id.email}\n"
@@ -79,9 +90,9 @@ class BorrowBookViewSet(
                         f"Expected Return Date: {borrow.expected_return_date}"
                     )
                     notify(message=message)
-                return Response(
-                    BorrowBookSerializer(borrow).data, status=status.HTTP_201_CREATED
-                )
+                response_data = serializer.data
+                response_data["payment_url"] = checkout_session.url
+                return Response(response_data, status=status.HTTP_201_CREATED)
             else:
                 return Response(
                     {"detail": "This book is out of stock."},
