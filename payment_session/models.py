@@ -20,3 +20,6 @@ class Payment(models.Model):
     borrowing = models.ForeignKey(Borrow, on_delete=models.CASCADE)
     money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Payment for {str(self.borrowing)}"
