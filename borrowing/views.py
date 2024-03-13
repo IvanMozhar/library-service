@@ -80,7 +80,7 @@ class BorrowBookViewSet(
                         session_id=checkout_session.id,
                         borrowing=borrow,
                         money_to_pay=borrow.calculate_amount,
-                        user=request.user
+                        user=request.user,
                     )
                     message = (
                         f"A new borrow record has been created:\n"
