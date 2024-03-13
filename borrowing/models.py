@@ -8,8 +8,8 @@ class Borrow(models.Model):
     borrow_date = models.DateField()
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    book_id = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="borrows")
+    user_id = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="borrows")
 
     @property
     def calculate_amount(self):
@@ -25,6 +25,9 @@ class Borrow(models.Model):
             return price * 1.7
         else:
             return price
+
+    def get_payment_session(self):
+        return self.payments.get(borrowing=self)
 
     def __str__(self):
         return f"Borrow '{self.book_id.title}' by {self.user_id.email}"

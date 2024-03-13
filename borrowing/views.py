@@ -29,7 +29,7 @@ class BorrowBookViewSet(
     mixins.CreateModelMixin,
     GenericViewSet,
 ):
-    queryset = Borrow.objects.all()
+    queryset = Borrow.objects.select_related("user_id", "book_id").prefetch_related("payments")
     serializer_class = BorrowBookSerializer
     permission_classes = [IsAdminUser | IsAuthenticated]
 
