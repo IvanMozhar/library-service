@@ -11,7 +11,7 @@ from .serializers import PaymentSerializer
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.all()
+    queryset = Payment.objects.select_related("borrowing__book_id", "user", "borrowing__user_id")
     serializer_class = PaymentSerializer
     permission_classes = [IsAdminUser | IsAuthenticated]
 
