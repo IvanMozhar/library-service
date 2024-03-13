@@ -38,7 +38,7 @@ def create_checkout_session(request, borrowing):
         ],
         mode="payment",
         success_url="http://127.0.0.1:8000/api/payments/success/?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url="http://127.0.0.1:8000/api/payments/cancel/",
+        cancel_url="http://127.0.0.1:8000/api/payments/cancel/?session_id={CHECKOUT_SESSION_ID}",
     )
 
     return session
@@ -58,4 +58,8 @@ def success(request):
 
 @api_view(["GET"])
 def cancel(request):
-    return JsonResponse({"message": "Payment cancelled or failed"})
+    session = stripe.checkout.Session.retrieve(request.GET.get("session_id"))
+    response_data = {
+        "payment_status": session.payment_status,
+    }
+    return Response(response_data)
