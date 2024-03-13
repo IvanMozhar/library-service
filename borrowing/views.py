@@ -120,13 +120,24 @@ class BorrowBookViewSet(
                 )
             borrow.actual_return_date = serializer.validated_data["actual_return_date"]
             borrow.save()
+            if borrow.actual_return_date > borrow.expected_return_date:
+                checkout_session = create_checkout_session(request, borrow)
+                payment = Payment.objects.get(borrowing=borrow)
+                payment.money_to_pay = int(borrow.calculate_amount)
+                payment.session_url = checkout_session.url
+                payment.session_id = checkout_session.id
+                payment.type = "FINE"
+                payment.save()
             book = borrow.book_id
             book.inventory += 1
             book.save()
-
-        return Response(
-            {"detail": "You have returned the book."}, status=status.HTTP_204_NO_CONTENT
-        )
+        response_data = {
+            "detail": "You have returned the book late. Additional payment required.",
+            "payment_url": checkout_session.url,
+            "session_id": checkout_session.id,
+            "new_price": payment.money_to_pay,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
     @extend_schema(
         parameters=[
