@@ -44,6 +44,7 @@ def create_checkout_session(request, borrowing):
 
 @api_view(["GET"])
 def success(request):
+    """Endpoint for successful payment"""
     session = stripe.checkout.Session.retrieve(request.GET.get("session_id"))
     response_data = {
         "payment_status": session.payment_status,
@@ -56,6 +57,7 @@ def success(request):
 
 @api_view(["GET"])
 def cancel(request):
+    """Endpoint for canceled payment"""
     session = stripe.checkout.Session.retrieve(request.GET.get("session_id"))
     response_data = {
         "payment_status": session.payment_status,
