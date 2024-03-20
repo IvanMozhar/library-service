@@ -1,13 +1,9 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAdminUser, BasePermission, SAFE_METHODS
+from rest_framework.permissions import IsAdminUser
 
 from books.models import Book
+from books.permissions import ReadOnly
 from books.serializers import BookSerializer
-
-
-class ReadOnly(BasePermission):
-    def has_permission(self, request, view):
-        return request.method in SAFE_METHODS
 
 
 class BookViewSet(viewsets.ModelViewSet):
