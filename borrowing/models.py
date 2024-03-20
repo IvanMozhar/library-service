@@ -9,13 +9,18 @@ class Borrow(models.Model):
     expected_return_date = models.DateField()
     actual_return_date = models.DateField(null=True, blank=True)
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="borrows")
-    user_id = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="borrows")
+    user_id = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, related_name="borrows"
+    )
 
     @property
     def calculate_amount(self):
         dif = self.expected_return_date - self.borrow_date
         price = int(self.book_id.daily_fee)
-        if self.actual_return_date and self.actual_return_date > self.expected_return_date:
+        if (
+            self.actual_return_date
+            and self.actual_return_date > self.expected_return_date
+        ):
             return price * 2
         if 20 > dif.days >= 10:
             return price * 1.3
@@ -27,7 +32,17 @@ class Borrow(models.Model):
             return price
 
     def get_payment_session(self):
-        return self.payments.get(borrowing=self)
+        if hasattr(self, "cached_payments"):
+            payment = self.cached_payments[0] if self.cached_payments else None
+            if payment:
+                return {
+                    "status": payment.status,
+                    "type": payment.type,
+                    "session_url": payment.session_url,
+                    "session_id": payment.session_id,
+                    "money_to_pay": payment.money_to_pay,
+                }
+        return None
 
     def __str__(self):
         return f"Borrow '{self.book_id.title}' by {self.user_id.email}"

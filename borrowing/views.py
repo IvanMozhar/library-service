@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Prefetch
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import mixins, status
@@ -29,7 +30,8 @@ class BorrowBookViewSet(
     mixins.CreateModelMixin,
     GenericViewSet,
 ):
-    queryset = Borrow.objects.select_related("user_id", "book_id").prefetch_related("payments")
+    queryset = Borrow.objects.select_related("user_id", "book_id").prefetch_related(
+        Prefetch("payments", queryset=Payment.objects.all(), to_attr="cached_payments"))
     serializer_class = BorrowBookSerializer
     permission_classes = [IsAdminUser | IsAuthenticated]
 
@@ -149,7 +151,7 @@ class BorrowBookViewSet(
             OpenApiParameter(
                 "user_id",
                 type=OpenApiTypes.INT,
-                description=("Filter by user_id (only for admin)" "(ex. ?user_id=2)"),
+                description="Filter by user_id (only for admin)" "(ex. ?user_id=2)",
             ),
         ]
     )

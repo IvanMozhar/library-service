@@ -10,7 +10,7 @@ from payment_session.serializers import PaymentBorrowSerializer
 class BorrowBookSerializer(serializers.ModelSerializer):
     book = BookSerializer(many=False, source="book_id")
     user = serializers.StringRelatedField(many=False, source="user_id")
-    payment_session = PaymentBorrowSerializer(many=False, source="get_payment_session")
+    payment_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Borrow
@@ -21,9 +21,12 @@ class BorrowBookSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
-            "payment_session"
+            "payment_details"
         )
         read_only_fields = ["user", "actual_return_date"]
+
+    def get_payment_details(self, obj):
+        return obj.get_payment_session()
 
 
 class BorrowCreateSerializer(serializers.ModelSerializer):
