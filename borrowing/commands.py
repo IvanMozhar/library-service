@@ -2,11 +2,10 @@ import requests
 
 from library_service import settings
 
-token = settings.TELEGRAM_BOT_TOKEN
-chat_id = settings.TELEGRAM_CHAT_ID
 
-
-def notify(message, bot_token=token, chat=chat_id):
+def notify(
+    message, bot_token=settings.TELEGRAM_BOT_TOKEN, chat=settings.TELEGRAM_CHAT_ID
+):
     send_text = (
         f"https://api.telegram.org/bot{bot_token}/"
         f"sendMessage?chat_id={chat}&parse_mode=Markdown&text={message}"
