@@ -31,7 +31,8 @@ class BorrowBookViewSet(
     GenericViewSet,
 ):
     queryset = Borrow.objects.select_related("user_id", "book_id").prefetch_related(
-        Prefetch("payments", queryset=Payment.objects.all(), to_attr="cached_payments"))
+        Prefetch("payments", queryset=Payment.objects.all(), to_attr="cached_payments")
+    )
     serializer_class = BorrowBookSerializer
     permission_classes = [IsAdminUser | IsAuthenticated]
 
@@ -95,11 +96,6 @@ class BorrowBookViewSet(
                 response_data = serializer.data
                 response_data["payment_url"] = checkout_session.url
                 return Response(response_data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(
-                    {"detail": "This book is out of stock."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
 
     @action(
         methods=["POST"],
