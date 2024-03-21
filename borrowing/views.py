@@ -96,6 +96,7 @@ class BorrowBookViewSet(
                 response_data = serializer.data
                 response_data["payment_url"] = checkout_session.url
                 return Response(response_data, status=status.HTTP_201_CREATED)
+            return Response(status=status.HTTP_201_CREATED)
 
     @action(
         methods=["POST"],

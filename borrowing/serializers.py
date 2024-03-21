@@ -21,7 +21,7 @@ class BorrowBookSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
-            "payment_details"
+            "payment_details",
         )
         read_only_fields = ["user", "actual_return_date"]
 
@@ -30,6 +30,8 @@ class BorrowBookSerializer(serializers.ModelSerializer):
 
 
 class BorrowCreateSerializer(serializers.ModelSerializer):
+    """Create borrowing"""
+
     book_id = serializers.PrimaryKeyRelatedField(queryset=Book.objects.all())
 
     class Meta:
